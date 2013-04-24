@@ -20,4 +20,24 @@ class Controller extends CController
 	 * for more details on how to specify this property.
 	 */
 	public $breadcrumbs=array();
+
+    public function filters()
+    {
+        return array(
+            'lastVisit',
+        );
+    }
+
+    public function filterLastVisit($filterChain){
+        if (!Yii::app()->user->isGuest){
+            $this->updateLastVisit();
+        }
+        $filterChain->run();
+    }
+
+    public function updateLastVisit(){
+        $lastVisit = User::model()->findByPk(Yii::app()->user->id);
+        $lastVisit->last_visit = date('Y-m-d H:i:s');
+        $lastVisit->saveAttributes(array('last_visit'));
+    }
 }

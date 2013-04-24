@@ -31,9 +31,9 @@
 			'items'=>array(
 				array('label'=>'Главная', 'url'=>array('/site/index')),
 				array('label'=>'О сайте', 'url'=>array('/site/page', 'view'=>'about')),
-				array('label'=>'Обратная связь', 'url'=>array('/site/contact')),
-				array('label'=>'Вход', 'url'=>array('/site/login'), 'visible'=>Yii::app()->user->isGuest),
-				array('label'=>'Выход ('.Yii::app()->user->name.')', 'url'=>array('/site/logout'), 'visible'=>!Yii::app()->user->isGuest)
+                array('label'=>'Регистрация', 'url'=>array('/user/register'), 'visible'=>Yii::app()->user->isGuest),
+				array('label'=>'Вход', 'url'=>array('/user/login'), 'visible'=>Yii::app()->user->isGuest),
+				array('label'=>'Выход ('.Yii::app()->user->name.')', 'url'=>array('/user/logout'), 'visible'=>!Yii::app()->user->isGuest)
 			),
 		)); ?>
 	</div><!-- mainmenu -->
