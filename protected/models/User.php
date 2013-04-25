@@ -22,8 +22,9 @@ class User extends CActiveRecord
     private $_identity;
     public $rememberMe;
     public $rePassword;
-    //public $avatar;
+    public $avatar;
     public $captcha;
+    public $oldPassword;
 
 	/**
 	 * Returns the static model of the specified AR class.
@@ -51,20 +52,22 @@ class User extends CActiveRecord
 		// NOTE: you should only define rules for those attributes that
 		// will receive user inputs.
 		return array(
-            array('email, password', 'required'),
-            array('captcha', 'required', 'on'=>'recovery, register'),
+            array('email, password', 'required', 'on'=> 'register, login, recovery'),
             array('rePassword', 'required', 'on'=>'recovery'),
             array('origin, rePassword', 'required', 'on'=>'register'),
             array('captcha', 'captcha', 'on'=>'recovery, register'),
             array('email', 'email'),
-            array('rePassword', 'compare', 'compareAttribute'=>'password', 'on'=>'register, update, recovery'),
+            array('rePassword', 'compare', 'compareAttribute'=>'password', 'on'=>'register, recovery'),
             array('vk', 'url'),
+            //TODO-не работает валидация файла, также надо сделать миниатюру. Вобщем с файлами жопа
+            array('avatar', 'file', 'types'=>'jpeg, jpg, png, gif', 'safe'=>true, 'maxFiles'=>1, 'allowEmpty'=>true),
             array('email, origin', 'unique', 'on'=>'register, update'),
 			array('email, origin, vk, avatar_url', 'length', 'max'=>128),
             array('password, origin', 'length', 'min'=>3),
 			array('password, activ_key', 'length', 'max'=>256),
 			array('role', 'length', 'max'=>5),
 			array('last_visit, rememberMe', 'safe'),
+            array('password, rePassword, oldPassword, origin, vk', 'length', 'max'=>64, 'allowEmpty' => true, 'on'=>'update'),
 			// The following rule is used by search().
 			// Please remove those attributes that should not be searched.
 			array('id, email, password, origin, rating, role, vk, confirm, avatar_url, activ_key, create_time, last_visit', 'safe', 'on'=>'search'),
@@ -100,6 +103,8 @@ class User extends CActiveRecord
             'rememberMe' => 'Запомнить меня',
             'rePassword' => 'Повторите пароль',
             'captcha' => 'Код подтверждения',
+            'oldPassword' => 'Старый пароль',
+            'avatar'=>'Аватар',
 		);
 	}
 
@@ -155,13 +160,20 @@ class User extends CActiveRecord
     public function saveUser(){
         $this->create_time = date('Y-m-d');
         $this->activ_key = $this->generate_code(10);
-        if ($this->save()){
-            $subject = "Подтверждение регистрации";//тема сообщения
-            $message = "Здравствуйте! Спасибо за регистрацию на сайте fifa-challenge.tw1.ru\nВаш Origin ID: ".$this->origin."\n";
-            $message .= "Перейдите по ссылке, чтобы активировать ваш аккаунт:\nhttp://fifa-challenge.tw1.ru/user/activate";
-            $message .= "?email=".$this->email."&code=".$this->activ_key."\nС уважением, Администрация сайта";//содержание сообщение
-            $this->smtpmail($this->email, $subject, $message );
-            return true;
+        $file = CUploadedFile::getInstance($this, 'avatar');
+        $this->avatar_url = $this->generate_code(10).'.'.$file->getExtensionName();
+        $destPath = Yii::getPathOfAlias('webroot').'/images/avatars/'.$this->avatar_url;
+        if ($file->saveAs($destPath)){
+            if ($this->save() && $file->saveAs($destPath)){
+                $subject = "Подтверждение регистрации";//тема сообщения
+                $message = "Здравствуйте! Спасибо за регистрацию на сайте fifa-challenge.tw1.ru\nВаш Origin ID: ".$this->origin."\n";
+                $message .= "Перейдите по ссылке, чтобы активировать ваш аккаунт:\nhttp://fifa-challenge.tw1.ru/user/activate";
+                $message .= "?email=".$this->email."&code=".$this->activ_key."\nС уважением, Администрация сайта";//содержание сообщение
+                $this->smtpmail($this->email, $subject, $message );
+                return true;
+            } else {
+                return false;
+            }
         } else{
             return false;
         }
@@ -251,6 +263,41 @@ class User extends CActiveRecord
             return true;
         } else {
             return false;
+        }
+    }
+
+    public function updateUser($user){
+        if (!empty($user['password']) && !empty($user['rePassword'])){
+            if (empty($user['oldPassword'])){
+                $this->addError('oldPassword', 'Введите старый пароль');
+                return false;
+            } elseif($user['password']!==$user['rePassword']){
+                $this->addError('rePassword', 'Повторите новый пароль в точности');
+                return false;
+            } elseif (crypt($user['oldPassword'],$this->password)!==$this->password){
+                $this->addError('oldPassword', 'Старый пароль неверен');
+                return false;
+            } elseif ((!empty($user['password']) && empty($user['rePassword'])) || (empty($user['password']) && !empty($user['rePassword']))){
+                $this->addError('password', 'Необходимо заполнить все поля паролей');
+                return false;
+            } else {
+                $this->attributes = $user;
+                $this->password = crypt($this->password);
+                if ($this->save()){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            $pwd = $this->password;
+            $this->attributes = $user;
+            $this->password = crypt($pwd);
+            if ($this->save()){
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 

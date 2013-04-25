@@ -2,16 +2,6 @@
 /* @var $this UserController */
 /* @var $model User */
 
-$this->breadcrumbs=array(
-	'Users'=>array('index'),
-	'Manage',
-);
-
-$this->menu=array(
-	array('label'=>'Список User', 'url'=>array('index')),
-	array('label'=>'Создать User', 'url'=>array('create')),
-);
-
 Yii::app()->clientScript->registerScript('search', "
 $('.search-button').click(function(){
 	$('.search-form').toggle();
@@ -26,7 +16,7 @@ $('.search-form form').submit(function(){
 ");
 ?>
 
-<h1>Управление Users</h1>
+<h1>Управление пользователями</h1>
 
 <p>
 Вы можете использовать один из операторов сравнения (<b>&lt;</b>, <b>&lt;=</b>, <b>&gt;</b>, <b>&gt;=</b>, <b>&lt;&gt;</b>
@@ -47,20 +37,16 @@ or <b>=</b>) в начале каждого поискового запроса.
 	'columns'=>array(
 		'id',
 		'email',
-		'password',
 		'origin',
 		'rating',
 		'role',
-		/*
 		'vk',
-		'confirm',
-		'avatar_url',
-		'activ_key',
 		'create_time',
 		'last_visit',
-		*/
 		array(
 			'class'=>'CButtonColumn',
+            'template'=>'{view} {update}',
+            'viewButtonUrl'=>'Yii::app()->controller->createUrl("profile",array("id"=>$data->primaryKey))',
 		),
 	),
 )); ?>

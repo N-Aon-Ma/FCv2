@@ -42,21 +42,6 @@
 	</div>
 
 	<div class="row">
-		<?php echo $form->label($model,'confirm'); ?>
-		<?php echo $form->textField($model,'confirm'); ?>
-	</div>
-
-	<div class="row">
-		<?php echo $form->label($model,'avatar_url'); ?>
-		<?php echo $form->textField($model,'avatar_url',array('size'=>60,'maxlength'=>128)); ?>
-	</div>
-
-	<div class="row">
-		<?php echo $form->label($model,'activ_key'); ?>
-		<?php echo $form->textField($model,'activ_key',array('size'=>60,'maxlength'=>256)); ?>
-	</div>
-
-	<div class="row">
 		<?php echo $form->label($model,'create_time'); ?>
 		<?php echo $form->textField($model,'create_time'); ?>
 	</div>

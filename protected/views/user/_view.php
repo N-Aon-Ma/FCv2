@@ -5,17 +5,8 @@
 
 <div class="view">
 
-	<b><?php echo CHtml::encode($data->getAttributeLabel('id')); ?>:</b>
-	<?php echo CHtml::link(CHtml::encode($data->id), array('view', 'id'=>$data->id)); ?>
-	<br />
-
-	<b><?php echo CHtml::encode($data->getAttributeLabel('email')); ?>:</b>
-	<?php echo CHtml::encode($data->email); ?>
-	<br />
-
-	<b><?php echo CHtml::encode($data->getAttributeLabel('password')); ?>:</b>
-	<?php echo CHtml::encode($data->password); ?>
-	<br />
+    <?php echo CHtml::link('Профиль', array('profile', 'id'=>$data->id)); ?>
+    <br />
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('origin')); ?>:</b>
 	<?php echo CHtml::encode($data->origin); ?>
@@ -48,12 +39,10 @@
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('create_time')); ?>:</b>
 	<?php echo CHtml::encode($data->create_time); ?>
-	<br />
+	<br />*/?>
 
 	<b><?php echo CHtml::encode($data->getAttributeLabel('last_visit')); ?>:</b>
 	<?php echo CHtml::encode($data->last_visit); ?>
 	<br />
-
-	*/ ?>
 
 </div>

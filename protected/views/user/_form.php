@@ -13,6 +13,9 @@
         'clientOptions'=>array(
             'validateOnSubmit'=>true,
         ),
+        'htmlOptions'=>array(
+            'enctype'=>'multipart/form-data',
+        ),
     )); ?>
 
     <p class="note">Поля, отмеченные <span class="required">*</span> являются обязательными.</p>
@@ -20,12 +23,23 @@
     <?php echo $form->errorSummary($model); ?>
 
     <div class="row">
-        <?php echo $form->labelEx($model,'email'); ?>
-        <?php echo $form->textField($model,'email',array('size'=>40,'maxlength'=>128)); ?>
-        <?php echo $form->error($model,'email'); ?>
+        <?if(Yii::app()->user->isGuest):?>
+            <?php echo $form->labelEx($model,'email'); ?>
+            <?php echo $form->textField($model,'email',array('size'=>40,'maxlength'=>128)); ?>
+            <?php echo $form->error($model,'email'); ?>
+        <?endif?>
     </div>
 
     <div class="row">
+        <?if(!Yii::app()->user->isGuest):?>
+            <?php echo $form->labelEx($model,'oldPassword'); ?>
+            <?php echo $form->passwordField($model,'oldPassword',array('size'=>40,'maxlength'=>64)); ?>
+            <?php echo $form->error($model,'oldPassword'); ?>
+        <?endif?>
+    </div>
+
+    <div class="row">
+        <?php $model->password = null; ?>
         <?php echo $form->labelEx($model,'password'); ?>
         <?php echo $form->passwordField($model,'password',array('size'=>40,'maxlength'=>64)); ?>
         <?php echo $form->error($model,'password'); ?>
@@ -47,6 +61,12 @@
         <?php echo $form->labelEx($model,'vk'); ?>
         <?php echo $form->textField($model,'vk',array('size'=>40,'maxlength'=>128)); ?>
         <?php echo $form->error($model,'vk'); ?>
+    </div>
+
+    <div class="row">
+        <?php echo $form->labelEx($model,'avatar'); ?>
+        <?php echo $form->fileField($model,'avatar'); ?>
+        <?php echo $form->error($model,'avatar'); ?>
     </div>
 
     <div class="row">
