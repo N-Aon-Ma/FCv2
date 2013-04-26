@@ -27,7 +27,7 @@ return array(
     ),
     'admin' => array(
         'type' => CAuthItem::TYPE_ROLE,
-        'description' => 'Алминистратор',
+        'description' => 'Администратор',
         'children' => array(
             'moder',         // позволим админу всё, что позволено модератору
         ),

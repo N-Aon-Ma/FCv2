@@ -60,7 +60,7 @@ class User extends CActiveRecord
             array('rePassword', 'compare', 'compareAttribute'=>'password', 'on'=>'register, recovery'),
             array('vk', 'url'),
             //TODO-не работает валидация файла, также надо сделать миниатюру. Вобщем с файлами жопа
-            array('avatar', 'file', 'types'=>'jpeg, jpg, png, gif', 'safe'=>true, 'maxFiles'=>1, 'allowEmpty'=>true),
+            array('avatar', 'file', 'types'=>'jpg, jpeg, png, gif', 'safe'=>true, 'allowEmpty'=>true),
             array('email, origin', 'unique', 'on'=>'register, update'),
 			array('email, origin, vk, avatar_url', 'length', 'max'=>128),
             array('password, origin', 'length', 'min'=>3),
@@ -137,44 +137,40 @@ class User extends CActiveRecord
 		));
 	}
 
-    public function generate_code($len) //запускаем функцию, генерирующую код
-    {
-        $hours = date("H"); // час
-        $minuts = substr(date("H"), 0 , 1);// минута
-        $mouns = date("m");    // месяц
-        $year_day = date("z"); // день в году
-        $str = $hours . $minuts . $mouns . $year_day; //создаем строку
-
-        $str = md5(md5($str)); //дважды шифруем в md5
-        $str = strrev($str);// реверс строки
-        $str = substr($str, 3, $len); // извлекаем $len символов, начиная с 3
-        // Вам конечно же можно постваить другие значения, так как, если взломщики узнают, каким именно способом это все генерируется, то в защите не будет смысла.
-
-        $array_mix = preg_split('//', $str, -1, PREG_SPLIT_NO_EMPTY);
-        srand ((float)microtime()*1000000);
-        shuffle ($array_mix);
-        //Тщательно перемешиваем, соль, сахар по вкусу!!!
-        return implode("", $array_mix);
-    }
-
     public function saveUser(){
+        $avatarExist = false;
         $this->create_time = date('Y-m-d');
-        $this->activ_key = $this->generate_code(10);
-        $file = CUploadedFile::getInstance($this, 'avatar');
-        $this->avatar_url = $this->generate_code(10).'.'.$file->getExtensionName();
-        $destPath = Yii::getPathOfAlias('webroot').'/images/avatars/'.$this->avatar_url;
-        if ($file->saveAs($destPath)){
-            if ($this->save() && $file->saveAs($destPath)){
-                $subject = "Подтверждение регистрации";//тема сообщения
-                $message = "Здравствуйте! Спасибо за регистрацию на сайте fifa-challenge.tw1.ru\nВаш Origin ID: ".$this->origin."\n";
-                $message .= "Перейдите по ссылке, чтобы активировать ваш аккаунт:\nhttp://fifa-challenge.tw1.ru/user/activate";
-                $message .= "?email=".$this->email."&code=".$this->activ_key."\nС уважением, Администрация сайта";//содержание сообщение
-                $this->smtpmail($this->email, $subject, $message );
-                return true;
+        $this->activ_key = Helpers::generateRandomKey(10);
+        if ($_FILES['User']['name']['avatar']!=""){
+            $avatarExist = true;
+            $file = CUploadedFile::getInstance($this, 'avatar');
+            $this->avatar_url = Helpers::generateRandomKey(7).'.'.$file->getExtensionName();
+        }
+        $transaction=$this->dbConnection->beginTransaction();
+        if ($this->save()){
+            $subject = "Подтверждение регистрации";//тема сообщения
+            $message = "Здравствуйте! Спасибо за регистрацию на сайте fifa-challenge.tw1.ru\nВаш Origin ID: ".$this->origin."\n";
+            $message .= "Перейдите по ссылке, чтобы активировать ваш аккаунт:\nhttp://fifa-challenge.tw1.ru/user/activate";
+            $message .= "?email=".$this->email."&code=".$this->activ_key."\nС уважением, Администрация сайта";//содержание сообщение
+            if ($avatarExist){
+                $big = Yii::getPathOfAlias('webroot').'/images/avatars/';
+                $small = Yii::getPathOfAlias('webroot').'/images/thumbAvatars/';
+                if (Helpers::resizeImage($file, $big, $this->avatar_url, 500) && Helpers::resizeImage($file, $small, $this->avatar_url, 100, null, $big.$this->avatar_url)){
+                    $transaction->commit();
+                    Helpers::smtpMail($this->email, $subject, $message );
+                    return true;
+                } else {
+                    $transaction->rollback();
+                    $this->addError('avatar', 'Ошибка при загрузке изображения.');
+                    return false;
+                }
             } else {
-                return false;
+                $transaction->commit();
+                Helpers::smtpMail($this->email, $subject, $message );
+                return true;
             }
-        } else{
+        } else {
+            $transaction->rollback();
             return false;
         }
     }
@@ -231,13 +227,13 @@ class User extends CActiveRecord
     public function sendRecoveryMail($email){
         $find = User::model()->findByAttributes(array('email'=>$email));
         if (isset($find)) {
-            $find->activ_key = $this->generate_code(15);
+            $find->activ_key = Helpers::generateRandomKey(15);
             $find->saveAttributes(array('activ_key'));
             $subject = "Восстановление пароля";//тема сообщения
             $message = "Здравствуйте! Ваш Origin ID: ".$find->origin."\n";
             $message .= "Для смены пароля на сайте fifa-challenge.tw1.ru перейдите по ссылке:\n";
             $message .= "http://fifa-challenge.tw1.ru/user/recovery?email=".$find->email."&code=".$find->activ_key."\nС уважением, Администрация сайта";//содержание сообщение
-            $this->smtpmail($email, $subject, $message);
+            Helpers::smtpMail($email, $subject, $message);
             return 'На Ваш email-адрес отправлено письмо. Перейди по ссылке в нём для смены пароля.';
         }  else {
             return 'Такой email-адрес не зарегистрирован.';
@@ -281,111 +277,68 @@ class User extends CActiveRecord
                 $this->addError('password', 'Необходимо заполнить все поля паролей');
                 return false;
             } else {
+                $avatarExist = false;
                 $this->attributes = $user;
                 $this->password = crypt($this->password);
+                if ($_FILES['User']['name']['avatar']!=""){
+                    $avatarExist = true;
+                    $file = CUploadedFile::getInstance($this, 'avatar');
+                    $this->avatar_url = Helpers::generateRandomKey(7).'.'.$file->getExtensionName();
+                }
+                $transaction=$this->dbConnection->beginTransaction();
                 if ($this->save()){
-                    return true;
+                    if ($avatarExist){
+                        $big = Yii::getPathOfAlias('webroot').'/images/avatars/';
+                        $small = Yii::getPathOfAlias('webroot').'/images/thumbAvatars/';
+                        if (Helpers::resizeImage($file, $big, $this->avatar_url, 500) && Helpers::resizeImage($file, $small, $this->avatar_url, 100, null, $big.$this->avatar_url)){
+                            $transaction->commit();
+                            return true;
+                        } else {
+                            $transaction->rollback();
+                            $this->addError('avatar', 'Ошибка при загрузке изображения.');
+                            return false;
+                        }
+                    } else {
+                        $transaction->commit();
+                        return true;
+                    }
                 } else {
+                    $transaction->rollback();
                     return false;
                 }
             }
         } else {
+            $avatarExist = false;
             $pwd = $this->password;
             $this->attributes = $user;
-            $this->password = crypt($pwd);
+            $this->password = $pwd;
+            if ($_FILES['User']['name']['avatar']!=""){
+                $avatarExist = true;
+                $file = CUploadedFile::getInstance($this, 'avatar');
+                $this->avatar_url = Helpers::generateRandomKey(7).'.'.$file->getExtensionName();
+            }
+            $transaction=$this->dbConnection->beginTransaction();
             if ($this->save()){
-                return true;
+                if ($avatarExist){
+                    $big = Yii::getPathOfAlias('webroot').'/images/avatars/';
+                    $small = Yii::getPathOfAlias('webroot').'/images/thumbAvatars/';
+                    if (Helpers::resizeImage($file, $big, $this->avatar_url, 500) && Helpers::resizeImage($file, $small, $this->avatar_url, 100, null, $big.$this->avatar_url)){
+                        $transaction->commit();
+                        return true;
+                    } else {
+                        $transaction->rollback();
+                        $this->addError('avatar', 'Ошибка при загрузке изображения.');
+                        return false;
+                    }
+                } else {
+                    $transaction->commit();
+                    return true;
+                }
             } else {
+                $transaction->rollback();
                 return false;
             }
         }
-    }
-
-    public function smtpmail($mail_to, $subject, $message, $headers='') {
-        $config['smtp_username'] = 'fifa-challenge@mail.ru'; //Смените на имя своего почтового ящика.
-        $config['smtp_port'] = '25'; // Порт работы. Не меняйте, если не уверены.
-        $config['smtp_host'] = 'smtp.mail.ru'; //сервер для отправки почты
-        $config['smtp_password'] = 'mailrrruuu33kms'; //пароль
-        $config['smtp_charset'] = 'UTF-8'; //кодировка сообщений.
-        $config['smtp_from'] = 'fifa-challenge'; //Ваше имя - или имя Вашего сайта. Будет показывать при прочтении в поле "От кого"
-        $SEND =   "Date: ".date("D, d M Y H:i:s") . " UT\r\n";
-        $SEND .=   'Subject: =?'.$config['smtp_charset'].'?B?'.base64_encode($subject)."=?=\r\n";
-        if ($headers) $SEND .= $headers."\r\n\r\n";
-        else
-        {
-            $SEND .= "Reply-To: ".$config['smtp_username']."\r\n";
-            $SEND .= "MIME-Version: 1.0\r\n";
-            $SEND .= "Content-Type: text/plain; charset=\"".$config['smtp_charset']."\"\r\n";
-            $SEND .= "Content-Transfer-Encoding: 8bit\r\n";
-            $SEND .= "From: \"".$config['smtp_from']."\" <".$config['smtp_username'].">\r\n";
-            $SEND .= "To: $mail_to <$mail_to>\r\n";
-            $SEND .= "X-Priority: 3\r\n\r\n";
-        }
-        $SEND .=  $message."\r\n";
-        if( !$socket = fsockopen($config['smtp_host'], $config['smtp_port'], $errno, $errstr, 30) ) {
-            return false;
-        }
-
-        if (!$this->server_parse($socket, "220", __LINE__)) return false;
-
-        fputs($socket, "HELO " . $config['smtp_host'] . "\r\n");
-        if (!$this->server_parse($socket, "250", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, "AUTH LOGIN\r\n");
-        if (!$this->server_parse($socket, "334", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, base64_encode($config['smtp_username']) . "\r\n");
-        if (!$this->server_parse($socket, "334", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, base64_encode($config['smtp_password']) . "\r\n");
-        if (!$this->server_parse($socket, "235", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, "MAIL FROM: <".$config['smtp_username'].">\r\n");
-        if (!$this->server_parse($socket, "250", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, "RCPT TO: <" . $mail_to . ">\r\n");
-
-        if (!$this->server_parse($socket, "250", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, "DATA\r\n");
-
-        if (!$this->server_parse($socket, "354", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, $SEND."\r\n.\r\n");
-
-        if (!$this->server_parse($socket, "250", __LINE__)) {
-            fclose($socket);
-            return false;
-        }
-        fputs($socket, "QUIT\r\n");
-        fclose($socket);
-        return TRUE;
-    }
-
-    public function server_parse($socket, $response, $line = __LINE__) {
-        while (substr($server_response, 3, 1) != ' ') {
-            if (!($server_response = fgets($socket, 256))) {
-                return false;
-            }
-        }
-        if (!(substr($server_response, 0, 3) == $response)) {
-            return false;
-        }
-        return true;
     }
 
     protected function beforeSave()

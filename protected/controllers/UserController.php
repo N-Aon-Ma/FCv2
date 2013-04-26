@@ -54,7 +54,7 @@ class UserController extends Controller
             array('allow',
                 'actions' => array('update'),
                 'users'=>array('@'),
-                //'bizRule' = ,
+                'expression'=>'$user->id=='.(int)$_GET['id'],
             ),
 			array('allow',
 				'actions'=>array('manage'),
@@ -68,28 +68,14 @@ class UserController extends Controller
 
     public function actionRegister(){
         $model = new User('register');
-        //Yii::import('application.extensions.upload.Upload');
         $this->performAjaxValidation($model);
-        $d = 'g';
         if(isset($_POST['User']))
 		{
 			$model->attributes=$_POST['User'];
-            /*$foo = new Upload($_FILES['User']['avatar']);
-            if ($foo->uploaded) {
-                // save uploaded image with no changes
-                $foo->Process('/../images/');
-                if ($foo->processed) {
-                    $d= 'original image copied';
-                } else {
-                    $d=  'error : ' . $foo->error;
-                }
-            } else {
-                $d=  'jopa';
-            }*/
 			if($model->saveUser()){
-                $this->render('message',array('title'=>'Регистрация','content'=>'На Ваш email-адрес отправлено письмо. Перейди по ссылке в нём для завершения регистрации.'.$d));
+                $this->render('message',array('title'=>'Регистрация','content'=>'На Ваш email-адрес отправлено письмо. Перейди по ссылке в нём для завершения регистрации.'));
             } else {
-                $this->render('message',array('title'=>'Регистрация','content'=>'Ошибка регистрации.'));
+                $this->render('register',array('model'=>$model));
             }
 		} else {
             $this->render('register',array('model'=>$model));
@@ -180,9 +166,8 @@ class UserController extends Controller
 				$this->redirect(array('profile','id'=>$model->id));
 		}
 
-
 		$this->render('update',array(
-			'model'=>$model,l,
+			'model'=>$model,
 		));
 	}
 
