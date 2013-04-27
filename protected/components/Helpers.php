@@ -1,10 +1,19 @@
 <?php
 /**
- * Class Helpers, содержащий вспомогательные функции
+ * Class Helpers содержащий вспомогательные функции
  */
 class Helpers {
 
-    public function resizeImage($image, $savePath, $newFilename, $w, $h=null, $source=null){
+    /**
+     * @param $image загружаемое изображение
+     * @param $savePath папка для сохранения
+     * @param $newFilename имя файла
+     * @param $w ширина
+     * @param null $h высота
+     * @param null $source ссылка на уже загруженное изображение
+     * @return bool
+     */
+    public static function resizeImage($image, $savePath, $newFilename, $w, $h=null, $source=null){
         $downloaded = false;
         if ($source==null){
             $source = $image->tempName;
@@ -87,7 +96,7 @@ class Helpers {
         return true;
         }
 
-    public function smtpMail($mail_to, $subject, $message, $headers='') {
+    public static function smtpMail($mail_to, $subject, $message, $headers='') {
         $config['smtp_username'] = 'fifa-challenge@mail.ru'; //Смените на имя своего почтового ящика.
         $config['smtp_port'] = '25'; // Порт работы. Не меняйте, если не уверены.
         $config['smtp_host'] = 'smtp.mail.ru'; //сервер для отправки почты
@@ -162,7 +171,7 @@ class Helpers {
         return TRUE;
     }
 
-    public function serverParse($socket, $response, $line = __LINE__) {
+    public static function serverParse($socket, $response, $line = __LINE__) {
         while (substr($server_response, 3, 1) != ' ') {
             if (!($server_response = fgets($socket, 256))) {
                 return false;
@@ -174,7 +183,7 @@ class Helpers {
         return true;
     }
 
-    public function generateRandomKey($len) //запускаем функцию, генерирующую код
+    public static function generateRandomKey($len) //запускаем функцию, генерирующую код
     {
         $hours = date("H"); // час
         $minuts = substr(date("H"), 0 , 1);// минута

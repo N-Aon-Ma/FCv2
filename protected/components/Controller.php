@@ -25,6 +25,7 @@ class Controller extends CController
     {
         return array(
             'lastVisit',
+            'accessControl',
         );
     }
 

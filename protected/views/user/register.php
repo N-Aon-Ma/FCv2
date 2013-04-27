@@ -7,22 +7,6 @@
 
     <div class="form">
 
-    <?php $this->widget('application.extensions.TheCKEditor.theCKEditorWidget',array(
-        'model'=>$model,                # Data-Model (form model)
-        'attribute'=>'vk',         # Attribute in the Data-Model
-        'height'=>'400px',
-        'width'=>'100%',
-        'toolbarSet'=>'Full',          # EXISTING(!) Toolbar (see: ckeditor.js)
-        'ckeditor'=>Yii::app()->basePath.'/../ckeditor/ckeditor.php',
-        # Path to ckeditor.php
-        'ckBasePath'=>Yii::app()->baseUrl.'/ckeditor/',
-        # Relative Path to the Editor (from Web-Root)
-        'css' => Yii::app()->baseUrl.'/css/index.css',
-        # Additional Parameters
-    ) ); ?>
-
-
-
     <?php $form=$this->beginWidget('CActiveForm', array(
         'id'=>'user-form',
         'enableAjaxValidation'=>true,

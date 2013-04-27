@@ -59,7 +59,6 @@ class User extends CActiveRecord
             array('email', 'email'),
             array('rePassword', 'compare', 'compareAttribute'=>'password', 'on'=>'register, recovery'),
             array('vk', 'url'),
-            //TODO-не работает валидация файла, также надо сделать миниатюру. Вобщем с файлами жопа
             array('avatar', 'file', 'types'=>'jpg, jpeg, png, gif', 'safe'=>true, 'allowEmpty'=>true),
             array('email, origin', 'unique', 'on'=>'register, update'),
 			array('email, origin, vk, avatar_url', 'length', 'max'=>128),
@@ -71,17 +70,6 @@ class User extends CActiveRecord
 			// The following rule is used by search().
 			// Please remove those attributes that should not be searched.
 			array('id, email, password, origin, rating, role, vk, confirm, avatar_url, activ_key, create_time, last_visit', 'safe', 'on'=>'search'),
-		);
-	}
-
-	/**
-	 * @return array relational rules.
-	 */
-	public function relations()
-	{
-		// NOTE: you may need to adjust the relation name and the related
-		// class name for the relations automatically generated below.
-		return array(
 		);
 	}
 

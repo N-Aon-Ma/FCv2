@@ -34,7 +34,8 @@
                 array('label'=>'Регистрация', 'url'=>array('/user/register'), 'visible'=>Yii::app()->user->isGuest),
 				array('label'=>'Вход', 'url'=>array('/user/login'), 'visible'=>Yii::app()->user->isGuest),
 				array('label'=>'Выход ('.Yii::app()->user->name.')', 'url'=>array('/user/logout'), 'visible'=>!Yii::app()->user->isGuest),
-                array('label'=>'Управление пользователями', 'url'=>array('/user/manage'), 'visible'=>Yii::app()->user->role==='admin')
+                array('label'=>'Управление пользователями', 'url'=>array('/user/manage'), 'visible'=>Yii::app()->user->role=='admin'),
+                array('label'=>'Добавить новость', 'url'=>array('/site/add'), 'visible'=>Yii::app()->user->role=='moder'|| Yii::app()->user->role=='admin')
             ),
 		)); ?>
 	</div><!-- mainmenu -->

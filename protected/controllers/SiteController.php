@@ -16,16 +16,69 @@ class SiteController extends Controller
 		);
 	}
 
+    /**
+     * Specifies the access control rules.
+     * This method is used by the 'accessControl' filter.
+     * @return array access control rules
+     */
+    public function accessRules()
+    {
+        return array(
+            array('allow',
+                'actions'=>array('index', 'page', 'error'),
+                'users'=>array('*'),
+            ),
+            array('allow',
+                'actions'=>array('add'),
+                'roles'=>array('moder'),
+            ),
+            array('allow',
+                'actions' => array('edit'),
+                'roles'=>array('moder'),
+                'expression'=>"Yii::app()->controller->isAuthor()",
+            ),
+            array('deny',  // deny all users
+                'users'=>array('*'),
+            ),
+        );
+    }
+
 	/**
 	 * This is the default 'index' action that is invoked
 	 * when an action is not explicitly requested by users.
 	 */
 	public function actionIndex()
 	{
-		// renders the view file 'protected/views/site/index.php'
-		// using the default layout 'protected/views/layouts/main.php'
-		$this->render('index');
+        if (isset($_GET['id'])){
+            $id = (int)$_GET['id'];
+            $model=$this->loadModel($id);
+            $this->render('news', array('model'=>$model));
+        } else {
+            $model = new News();
+            $news = $model->getLatestNews();
+		    $this->render('index', array('news'=>$news));
+        }
 	}
+
+    public function actionAdd(){
+        $model = new News();
+        if (isset($_POST['News'])){
+            $model->attributes = $_POST['News'];
+            if($model->addNews())
+                $this->redirect(array('index','id'=>$model->id));
+        }
+        $this->render('add', array('model'=>$model));
+    }
+
+    public function actionEdit($id){
+        $model = $this->loadModel($id);
+        if (isset($_POST['News'])){
+            $model->attributes = $_POST['News'];
+            $model->addNews();
+            $this->redirect(array('index','id'=>$model->id));
+        }
+        $this->render('add', array('model'=>$model));
+    }
 
 	/**
 	 * This is the action to handle external exceptions.
@@ -40,4 +93,27 @@ class SiteController extends Controller
 				$this->render('error', $error);
 		}
 	}
+
+    public function isAuthor(){
+        if (isset($_GET['id'])){
+            $id = (int)$_GET['id'];
+            $model = self::loadModel($id);
+            if ($model->author->id==Yii::app()->user->id){
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public function loadModel($id)
+    {
+        $model=News::model()->findByPk($id);
+        if($model===null)
+            throw new CHttpException(404,'Неверный URL.');
+        return $model;
+    }
+
 }
