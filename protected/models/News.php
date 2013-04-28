@@ -18,6 +18,7 @@ class News extends CActiveRecord
 {
     private $_newsOnPage = 5;
     public $image;
+    public $newComment;
 	/**
 	 * Returns the static model of the specified AR class.
 	 * @param string $className active record class name.
@@ -47,6 +48,8 @@ class News extends CActiveRecord
 			array('head, body', 'required'),
 			array('head', 'length', 'max'=>64),
 			array('head_image_url', 'length', 'max'=>32),
+            array('newComment', 'required'),
+            array('newComment', 'length', 'max'=>256),
             array('image', 'file', 'types'=>'jpeg, jpg, gif, png', 'allowEmpty'=>true, 'safe'=>true),
 			// The following rule is used by search().
 			// Please remove those attributes that should not be searched.
@@ -63,6 +66,7 @@ class News extends CActiveRecord
 		// class name for the relations automatically generated below.
 		return array(
 			'author' => array(self::BELONGS_TO, 'User', 'author_id'),
+            'comment' => array(self::HAS_MANY, 'CommentNews', 'news_id'),
 		);
 	}
 
@@ -78,6 +82,7 @@ class News extends CActiveRecord
 			'body' => 'Содержание',
 			'date' => 'Дата публикации',
 			'head_image_url' => 'Заглавное изображение',
+            'newComment' => 'Комментарий',
 		);
 	}
 
@@ -139,5 +144,16 @@ class News extends CActiveRecord
             $transaction->rollback();
             return false;
         }
+    }
+
+    public function addComment($value){
+        $comment = new CommentNews();
+        $comment->user_id = Yii::app()->user->id;
+        $comment->news_id = $this->id;
+        $comment->value = $value;
+        if ($comment->save()){
+            return true;
+        }
+        return false;
     }
 }

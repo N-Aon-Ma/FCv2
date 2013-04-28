@@ -52,7 +52,19 @@ class SiteController extends Controller
         if (isset($_GET['id'])){
             $id = (int)$_GET['id'];
             $model=$this->loadModel($id);
-            $this->render('news', array('model'=>$model));
+            if (isset($_POST['News']['newComment'])){
+                if ($model->addComment($_POST['News']['newComment'])){
+                    Yii::app()->user->setFlash('addComment','Ваш комментарий добавлен');
+                    //TODO - и здесь та же хурма с редиректом/рендером
+                    $model->newComment = null;
+                    $this->redirect(array('news','id'=>$model->id));
+                } else {
+                    Yii::app()->user->setFlash('addComment','Ошибка при добавлении комментария');
+                    $this->redirect(array('news','id'=>$model->id));
+                }
+            } else{
+                $this->render('news', array('model'=>$model));
+            }
         } else {
             $model = new News();
             $news = $model->getLatestNews();

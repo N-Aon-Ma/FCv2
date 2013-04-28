@@ -96,6 +96,19 @@ class User extends CActiveRecord
 		);
 	}
 
+    /**
+     * @return array relational rules.
+     */
+    public function relations()
+    {
+        // NOTE: you may need to adjust the relation name and the related
+        // class name for the relations automatically generated below.
+        return array(
+            'outMessages' => array(self::HAS_MANY, 'Message', 'author_id'),
+            'inMessages' => array(self::HAS_MANY, 'Message', 'destination_id'),
+        );
+    }
+
 	/**
 	 * Retrieves a list of models based on the current search/filter conditions.
 	 * @return CActiveDataProvider the data provider that can return the models based on the search/filter conditions.
@@ -326,6 +339,58 @@ class User extends CActiveRecord
                 $transaction->rollback();
                 return false;
             }
+        }
+    }
+
+    public static function getMessageAndRead($id){
+        //жёсткий реляционный запрос, чтобы вытащить сообщение и автор (вторым реляционным запросом)
+        $user = User::model()->with(array('inMessages'=>
+            array(
+               'condition'=>'inMessages.id='.$id,
+               'with'=>array('author'=>
+                    array(
+                        'select'=>'origin',
+                    ),
+               ),
+            ),
+        ))->findByPk(Yii::app()->user->id);
+        if (!isset($user->inMessages[0]['id'])){
+            throw new CHttpException(404, 'Неверный URL.');
+        } else {
+            $user->inMessages[0]['read'] = true;
+            $user->inMessages[0]->saveAttributes(array('read'));
+            return array (
+                'author'=>$user->inMessages[0]['author']->origin,
+                'read'=>$user->inMessages[0]['read'],
+                'date'=>$user->inMessages[0]['date'],
+                'value'=>$user->inMessages[0]['value']
+            );
+        }
+    }
+
+    public function getAllMessages(){
+        $user = User::model()->with(array('inMessages'=>
+        array(
+            'with'=>array('author'=>
+                array(
+                    'select'=>'origin',
+                ),
+            ),
+        ),
+        ))->findByPk(Yii::app()->user->id);
+        if (!isset($user->inMessages[0]['id'])){
+            return false;
+        } else {
+            foreach ($user->inMessages as $key1=>$val1){
+                foreach ($val1 as $key2=>$val2){
+                    if ($key2==='author_id'){
+                        $messages[$key1]['author'] = $val1->author->origin;
+                    } else{
+                        $messages[$key1][$key2] = $val2;
+                    }
+                }
+            }
+            return $messages;
         }
     }
 

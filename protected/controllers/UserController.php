@@ -37,7 +37,7 @@ class UserController extends Controller
 				'users'=>array('*'),
 			),
 			array('allow',
-				'actions'=>array('logout'),
+				'actions'=>array('logout', 'message', 'writeMessage'),
 				'users'=>array('@'),
 			),
             array('allow',
@@ -185,6 +185,34 @@ class UserController extends Controller
 			'model'=>$model,
 		));
 	}
+
+    public function actionMessage(){
+        if (isset($_GET['id'])){
+            $id = (int)$_GET['id'];
+            $message = User::model()->getMessageAndRead($id);
+            $this->render('readMessage', array('message'=>$message));
+        } else {
+            $messages = User::model()->getAllMessages();
+            $this->render('messages', array('messages'=>$messages));
+        }
+    }
+
+    public function actionWriteMessage($id){
+        $model = new Message();
+        $dest = $this->loadModel($id);
+        if (isset($_POST['Message'])){
+            $model->attributes = $_POST['Message'];
+            if ($model->saveMessage($id)){
+                $text = 'Ваше сообщение пользователю '.$dest->origin.' отправлено.';
+            } else {
+                $text = 'Ошибка при отправке сообщения';
+            }
+            //TODO - почему-то не рендерит...
+            $this->render('message',array('title'=>'Отправка сообщения','content'=>$text));
+        } else {
+            $this->render('writeMessage', array('model'=>$model, 'dest'=>$dest->origin));
+        }
+    }
 
 	/**
 	 * Returns the data model based on the primary key given in the GET variable.
