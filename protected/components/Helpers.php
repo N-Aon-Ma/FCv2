@@ -100,7 +100,7 @@ class Helpers {
         $config['smtp_username'] = 'fifa-challenge@mail.ru'; //Смените на имя своего почтового ящика.
         $config['smtp_port'] = '25'; // Порт работы. Не меняйте, если не уверены.
         $config['smtp_host'] = 'smtp.mail.ru'; //сервер для отправки почты
-        $config['smtp_password'] = 'mailrrruuu33kms'; //пароль
+        $config['smtp_password'] = '***'; //пароль
         $config['smtp_charset'] = 'UTF-8'; //кодировка сообщений.
         $config['smtp_from'] = 'fifa-challenge'; //Ваше имя - или имя Вашего сайта. Будет показывать при прочтении в поле "От кого"
         $SEND =   "Date: ".date("D, d M Y H:i:s") . " UT\r\n";

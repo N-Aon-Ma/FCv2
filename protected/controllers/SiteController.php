@@ -55,7 +55,7 @@ class SiteController extends Controller
             if (isset($_POST['News']['newComment'])){
                 if ($model->addComment($_POST['News']['newComment'])){
                     Yii::app()->user->setFlash('addComment','Ваш комментарий добавлен');
-                    //TODO - и здесь та же хурма с редиректом/рендером
+                    //TODO - и здесь та же хурма с редиректом/рендером блин
                     $model->newComment = null;
                     $this->redirect(array('news','id'=>$model->id));
                 } else {

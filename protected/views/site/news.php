@@ -1,6 +1,5 @@
 <?php
 /* @var $this SiteController */
-
 $this->pageTitle=Yii::app()->name;
 ?>
 
@@ -13,6 +12,7 @@ $this->pageTitle=Yii::app()->name;
     <?php for ($i=0; $i<count($model->comment); $i++) : ?>
     <div class="row">
         <?php echo $model->comment[$i]['value']; ?>
+        <?php echo $model->comment[$i]['date']; ?>
         <?php echo $model->comment[$i]['user']->origin; ?>
     </div>
     <?php endfor ?>

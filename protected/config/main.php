@@ -10,7 +10,10 @@ return array(
     'language'=>'ru',
 
 	// preloading 'log' component
-	'preload'=>array('log'),
+	'preload'=>array(
+        'log',
+        'config'
+    ),
 
 	// autoloading model and component classes
 	'import'=>array(
@@ -40,6 +43,10 @@ return array(
             'guestName'=>'Гость',
 	        'loginUrl'=>array('/user/login'),
 		),
+
+        'config'=>array(
+            'class' => 'DConfig'
+        ),
 
         'authManager' => array(
             // Будем использовать свой менеджер авторизации
@@ -73,6 +80,10 @@ return array(
 			'username' => 'root',
 			'password' => '',
 			'charset' => 'utf8',
+            // включаем профайлер
+            'enableProfiling'=>true,
+            // показываем значения параметров
+            'enableParamLogging' => true,
 		),
 
 		'errorHandler'=>array(
@@ -92,6 +103,15 @@ return array(
 					'class'=>'CWebLogRoute',
                     'levels'=>'error, warning',
 				),
+
+                array(
+                    'class'=>'CProfileLogRoute',
+                    'report'=>'summary',
+                    'levels'=>'profile',
+                    'enabled'=>true,
+                    // Показывает время выполнения каждого отмеченного блока кода.
+                    // Значение "report" также можно указать как "callstack".
+                ),
 
 			),
 		),
