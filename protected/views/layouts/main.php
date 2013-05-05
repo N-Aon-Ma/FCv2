@@ -19,7 +19,7 @@
 </head>
 
 <body>
-
+<?echo coci;?>
 <div class="container" id="page">
 
 	<div id="header">
