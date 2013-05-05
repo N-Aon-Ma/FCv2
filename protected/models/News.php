@@ -49,10 +49,10 @@ class News extends CActiveRecord
         // NOTE: you should only define rules for those attributes that
         // will receive user inputs.
         return array(
-            array('head, body', 'required'),
+            array('head, body', 'required', 'on'=>'add'),
             array('head', 'length', 'max' => 64),
             array('head_image_url', 'length', 'max' => 32),
-            array('newComment', 'required'),
+            array('newComment', 'required', 'on'=>'comment'),
             array('newComment', 'length', 'max' => 256),
             array('image', 'file', 'types' => 'jpeg, jpg, gif, png', 'allowEmpty' => true, 'safe' => true),
             // The following rule is used by search().

@@ -52,6 +52,7 @@ class SiteController extends Controller
         if (isset($_GET['id'])){
             $id = (int)$_GET['id'];
             $model=$this->loadModel($id);
+            $model->scenario = 'comment';
             if (isset($_POST['News']['newComment'])){
                 if ($model->addComment($_POST['News']['newComment'])){
                     Yii::app()->user->setFlash('addComment','Ваш комментарий добавлен');
@@ -73,7 +74,7 @@ class SiteController extends Controller
 	}
 
     public function actionAdd(){
-        $model = new News();
+        $model = new News('add');
         if (isset($_POST['News'])){
             $model->attributes = $_POST['News'];
             if($model->addNews())
